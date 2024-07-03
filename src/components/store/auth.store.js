@@ -1,14 +1,15 @@
 
 
+
+
 class AuthStore {
   isAuth = false;
 
-
-
   login() {
     this.isAuth = true;
-    window.location.reload();
+    window.location.reload()
   }
+
   logout() {
     this.isAuth = false;
     localStorage.removeItem('role');
@@ -19,7 +20,7 @@ class AuthStore {
   checkAuthentication() {
     const accessToken = localStorage.getItem('access_token');
     const role = localStorage.getItem('role');
-    if (accessToken && role == 'admin') {
+    if (accessToken && role === 'admin') {
       this.isAuth = true;
     } else {
       this.isAuth = false;
