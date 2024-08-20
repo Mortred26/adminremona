@@ -3,15 +3,15 @@
 import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Users from "../main/Users";
-import Products from "../main/Products";
+import Products from "../main/Tests";
 import Category from "../main/Category";
-import Brand from "../main/Brands";
 import Admin from "../main/Admin";
 import Login from "../auth/Login";
 import Register from "../auth/Register";
 
 import { authStore } from "../store/auth.store";
 import Description from "../main/description";
+import Groups from "../main/Groups";
 
 export function Router() {
   let role = localStorage.getItem("role");
@@ -29,7 +29,7 @@ export function Router() {
             <Route path="/" element={<Products />} />
             <Route path="/users" element={<Users />} />
             <Route path="/category" element={<Category />} />
-            <Route path="/brands" element={<Brand />} />
+            <Route path="/groups" element={<Groups />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<Navigate to="/" />} />
           </>

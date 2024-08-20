@@ -1,7 +1,6 @@
-// src/components/auth/Login.jsx
-
 import { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { authStore } from "../store/auth.store"; // Import the authStore
 
 const Login = () => {
@@ -9,6 +8,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -17,7 +17,7 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        "https://remonabackend.onrender.com/api/v1/auth/login",
+        "https://ctfhawksbackend.onrender.com/api/users/login",
         {
           email,
           password,
@@ -26,7 +26,7 @@ const Login = () => {
 
       const { accessToken, refreshToken, role } = response.data;
 
-      // Save tokens to localStorage
+      // Save tokens and role to localStorage
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
       localStorage.setItem("role", role);
@@ -34,7 +34,9 @@ const Login = () => {
       // Update the auth store
       authStore.login();
 
-      // Login successful, redirect or perform other actions
+      // Login successful, navigate to the dashboard or another page
+      navigate("/dashboard");
+
       console.log("Login successful:", response.data);
     } catch (err) {
       setError("Invalid email or password");

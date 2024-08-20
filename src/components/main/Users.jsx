@@ -1,10 +1,129 @@
-import React from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { FaRegEdit, FaTrash } from "react-icons/fa";
+import Sidebar from "./Sidebar";
 import "../style/style.css";
 import "line-awesome/dist/line-awesome/css/line-awesome.min.css";
-import Sidebar from "./Sidebar";
 import { authStore } from "../store/auth.store";
+import { GrUserAdmin } from "react-icons/gr";
 
-function Users() {
+const Users = () => {
+  const [users, setUsers] = useState([]);
+  const [isUpdateWindowVisible, setIsUpdateWindowVisible] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [updatedName, setUpdatedName] = useState("");
+  const [updatedEmail, setUpdatedEmail] = useState("");
+  const [userPassword, setUserPassword] = useState("");
+  const accessToken = localStorage.getItem("accessToken");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          "https://ctfhawksbackend.onrender.com/api/users",
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+        setUsers(response.data);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+
+    fetchData();
+  }, [accessToken]);
+
+  const handleGrantSuperuser = async (userId) => {
+    try {
+      await axios.put(
+        `https://ctfhawksbackend.onrender.com/api/users/${userId}/superuser`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      const updatedUsers = await axios.get(
+        "https://ctfhawksbackend.onrender.com/api/users",
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      setUsers(updatedUsers.data);
+    } catch (error) {
+      console.error("Error granting superuser rights:", error);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    try {
+      await axios.delete(
+        `https://ctfhawksbackend.onrender.com/api/users/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      setUsers((prevUsers) => prevUsers.filter((user) => user._id !== userId));
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    }
+  };
+
+  const handleUpdateClick = (user) => {
+    setSelectedUser(user);
+    setUpdatedName(user.name);
+    setUpdatedEmail(user.email);
+    setIsUpdateWindowVisible(true);
+  };
+
+  const handleUpdateSubmit = async (event) => {
+    event.preventDefault();
+
+    const data = {
+      name: updatedName,
+      email: updatedEmail,
+
+      password: userPassword,
+    };
+
+    try {
+      await axios.put(
+        `https://ctfhawksbackend.onrender.com/api/users/${selectedUser._id}`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      const updatedUsers = await axios.get(
+        "https://ctfhawksbackend.onrender.com/api/users",
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      setUsers(updatedUsers.data);
+      setIsUpdateWindowVisible(false);
+    } catch (error) {
+      console.error("Error updating user:", error);
+    }
+  };
+
   const handleLogout = () => {
     authStore.logout();
   };
@@ -13,6 +132,7 @@ function Users() {
     <div className="App">
       <input type="checkbox" id="menu-toggle" />
       <Sidebar />
+
       <div className="main-content">
         <header>
           <div className="header-content">
@@ -51,163 +171,104 @@ function Users() {
           <div className="page-header">
             <h1>Users</h1>
           </div>
+
           <div className="page-content">
             <div className="records table-responsive">
-              <div className="record-header">
-                <div className="add">
-                  <span>Entries</span>
-                  <select>
-                    <option>ID</option>
-                  </select>
-                  <button>Add record</button>
-                </div>
-                <div className="browse">
-                  <input
-                    type="search"
-                    placeholder="Search"
-                    className="record-search"
-                  />
-                  <select>
-                    <option>Status</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <table width="100%">
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>
-                        <span className="las la-sort"></span> CLIENT
-                      </th>
-                      <th>
-                        <span className="las la-sort"></span> TOTAL
-                      </th>
-                      <th>
-                        <span className="las la-sort"></span> ISSUED DATE
-                      </th>
-                      <th>
-                        <span className="las la-sort"></span> BALANCE
-                      </th>
-                      <th>
-                        <span className="las la-sort"></span> ACTIONS
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>#5033</td>
-                      <td>
-                        <div className="client">
-                          <div
-                            className="client-img bg-img"
-                            style={{ backgroundImage: "url(img/3.jpeg)" }}
-                          ></div>
-                          <div className="client-info">
-                            <h4>Andrew Bruno</h4>
-                            <small>bruno@crossover.org</small>
-                          </div>
-                        </div>
-                      </td>
-                      <td>$3171</td>
-                      <td>19 April, 2022</td>
-                      <td>-$205</td>
+              <table width="100%">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr key={user._id}>
+                      <td>{user.name}</td>
+                      <td>{user.email}</td>
+                      <td>{user.role}</td>
                       <td>
                         <div className="actions">
-                          <span className="lab la-telegram-plane"></span>
-                          <span className="las la-eye"></span>
-                          <span className="las la-ellipsis-v"></span>
+                          <span>
+                            <FaRegEdit
+                              className="la-edit"
+                              onClick={() => handleUpdateClick(user)}
+                            />
+                          </span>
+                          <span>
+                            <FaTrash
+                              className="la-trash"
+                              onClick={() => handleDeleteUser(user._id)}
+                            />
+                          </span>
+                          {user.role !== "superuser" && (
+                            <span>
+                              <button
+                                className="grant-superuser-button"
+                                onClick={() => handleGrantSuperuser(user._id)}
+                              >
+                                <GrUserAdmin className="adminpatch" />
+                              </button>
+                            </span>
+                          )}
                         </div>
                       </td>
                     </tr>
-                    <tr>
-                      <td>#5033</td>
-                      <td>
-                        <div className="client">
-                          <div
-                            className="client-img bg-img"
-                            style={{ backgroundImage: "url(img/1.jpeg)" }}
-                          ></div>
-                          <div className="client-info">
-                            <h4>Exty Bruno</h4>
-                            <small>exty@crossover.org</small>
-                          </div>
-                        </div>
-                      </td>
-                      <td>$3171</td>
-                      <td>19 April, 2022</td>
-                      <td>-$205</td>
-                      <td>
-                        <div className="actions">
-                          <span className="lab la-telegram-plane"></span>
-                          <span className="las la-eye"></span>
-                          <span className="las la-ellipsis-v"></span>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>#5033</td>
-                      <td>
-                        <div className="client">
-                          <div
-                            className="client-img bg-img"
-                            style={{ backgroundImage: "url(img/1.jpeg)" }}
-                          ></div>
-                          <div className="client-info">
-                            <h4>Exty Bruno</h4>
-                            <small>exty@crossover.org</small>
-                          </div>
-                        </div>
-                      </td>
-                      <td>$2171</td>
-                      <td>19 April, 2022</td>
-                      <td>
-                        <span className="paid">Paid</span>
-                      </td>
-                      <td>
-                        <div className="actions">
-                          <span className="lab la-telegram-plane"></span>
-                          <span className="las la-eye"></span>
-                          <span className="las la-ellipsis-v"></span>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>#5033</td>
-                      <td>
-                        <div className="client">
-                          <div
-                            className="client-img bg-img"
-                            style={{ backgroundImage: "url(img/1.jpeg)" }}
-                          ></div>
-                          <div className="client-info">
-                            <h4>Exty Bruno</h4>
-                            <small>exty@crossover.org</small>
-                          </div>
-                        </div>
-                      </td>
-                      <td>$2171</td>
-                      <td>19 April, 2022</td>
-                      <td>
-                        <span className="unpaid">Unpaid</span>
-                      </td>
-                      <td>
-                        <div className="actions">
-                          <span className="lab la-telegram-plane"></span>
-                          <span className="las la-eye"></span>
-                          <span className="las la-ellipsis-v"></span>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </main>
+
+        {isUpdateWindowVisible && selectedUser && (
+          <div className="update-window">
+            <form onSubmit={handleUpdateSubmit}>
+              <h2>Update User</h2>
+              <label>
+                Name:
+                <input
+                  type="text"
+                  value={updatedName}
+                  onChange={(e) => setUpdatedName(e.target.value)}
+                />
+              </label>
+              <label>
+                Email:
+                <input
+                  type="email"
+                  value={updatedEmail}
+                  onChange={(e) => setUpdatedEmail(e.target.value)}
+                />
+              </label>
+
+              <label>
+                Password:
+                <input
+                  type="password"
+                  value={userPassword}
+                  onChange={(e) => setUserPassword(e.target.value)}
+                />
+              </label>
+              <button type="submit">Update</button>
+              <button
+                onClick={() => setIsUpdateWindowVisible(false)}
+                style={{
+                  backgroundColor: "red",
+                  marginTop: "10px",
+                }}
+                type="submit"
+              >
+                Close
+              </button>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   );
-}
+};
 
 export default Users;

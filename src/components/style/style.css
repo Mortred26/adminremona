@@ -433,6 +433,11 @@ table tbody td {
 }
 
 table tbody td:first-child {
+  padding: 1rem 1.5rem;
+  color: #444;
+}
+
+table tbody td:first-child {
   color: var(--main-color);
   font-weight: 600;
   font-size: 0.9rem;
@@ -461,6 +466,11 @@ table tbody tr {
 
 .client-info small {
   color: #777;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
 }
 
 .actions span {
@@ -506,6 +516,24 @@ table tbody tr {
 .la-delete:hover {
   background-color: rgb(254, 255, 251);
   fill: black;
+}
+
+.grant-superuser-button {
+  padding: 5px;
+  background-color: red;
+  border-radius: 6px;
+}
+
+.grant-superuser-button:hover {
+  background-color: blue;
+  border-radius: 6px;
+  fill: white;
+}
+
+.adminpatch {
+  width: 16px;
+  height: 16px;
+  color: white;
 }
 
 /* Update Window CSS */

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 import "../style/auth.css"; // Make sure the path is correct
 import { useNavigate } from "react-router-dom";
@@ -19,7 +19,7 @@ const Register = () => {
 
     try {
       const response = await axios.post(
-        "https://remonabackend.onrender.com/api/v1/auth/register",
+        "https://ctfhawksbackend.onrender.com/api/users/register",
         {
           name,
           email,

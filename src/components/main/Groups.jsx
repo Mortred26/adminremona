@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { FaRegEdit, FaTrash } from "react-icons/fa";
 import Sidebar from "./Sidebar";
@@ -6,41 +6,60 @@ import "../style/style.css";
 import "line-awesome/dist/line-awesome/css/line-awesome.min.css";
 import { authStore } from "../store/auth.store";
 
-const Brand = () => {
-  const [brands, setBrands] = useState([]);
+const GroupComponent = () => {
+  const [groups, setGroups] = useState([]);
+  const [categories, setCategories] = useState([]); // State to hold categories
   const [isUpdateWindowVisible, setIsUpdateWindowVisible] = useState(false);
   const [isPostWindowVisible, setIsPostWindowVisible] = useState(false);
-  const [selectedBrand, setSelectedBrand] = useState(null);
+  const [selectedGroup, setSelectedGroup] = useState(null);
   const [updatedName, setUpdatedName] = useState("");
-  const [updatedDescription, setUpdatedDescription] = useState("");
-  const [newBrandName, setNewBrandName] = useState("");
-  const [newBrandDescription, setNewBrandDescription] = useState("");
+  const [newGroupName, setNewGroupName] = useState("");
+  const [categoryId, setCategoryId] = useState(""); // To store the selected category ID
   const accessToken = localStorage.getItem("accessToken");
 
   useEffect(() => {
-    const fetchData = async () => {
+    // Fetch groups
+    const fetchGroups = async () => {
       try {
         const response = await axios.get(
-          "https://remonabackend.onrender.com/api/v1/brands",
+          "https://ctfhawksbackend.onrender.com/api/groups",
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,
             },
           }
         );
-        setBrands(response.data);
+        setGroups(response.data);
       } catch (error) {
-        console.error("Error fetching brands:", error);
+        console.error("Error fetching groups:", error);
       }
     };
 
-    fetchData();
+    // Fetch categories
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get(
+          "https://ctfhawksbackend.onrender.com/api/categories",
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchGroups();
+    fetchCategories();
   }, [accessToken]);
 
-  const handleUpdateClick = (brand) => {
-    setSelectedBrand(brand);
-    setUpdatedName(brand.name);
-    setUpdatedDescription(brand.description);
+  const handleUpdateClick = (group) => {
+    setSelectedGroup(group);
+    setUpdatedName(group.name);
+    setCategoryId(group.category._id); // Set selected category ID
     setIsUpdateWindowVisible(true);
     setIsPostWindowVisible(false);
   };
@@ -55,12 +74,12 @@ const Brand = () => {
 
     const data = {
       name: updatedName,
-      description: updatedDescription,
+      category: categoryId, // Send selected category ID
     };
 
     try {
       await axios.put(
-        `https://remonabackend.onrender.com/api/v1/brands/${selectedBrand._id}`,
+        `https://ctfhawksbackend.onrender.com/api/groups/${selectedGroup._id}`,
         data,
         {
           headers: {
@@ -70,8 +89,8 @@ const Brand = () => {
         }
       );
 
-      const updatedBrands = await axios.get(
-        "https://remonabackend.onrender.com/api/v1/brands",
+      const updatedGroups = await axios.get(
+        "https://ctfhawksbackend.onrender.com/api/groups",
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -79,11 +98,10 @@ const Brand = () => {
         }
       );
 
-      setBrands(updatedBrands.data);
-
+      setGroups(updatedGroups.data);
       setIsUpdateWindowVisible(false);
     } catch (error) {
-      console.error("Error updating brand:", error);
+      console.error("Error updating group:", error);
     }
   };
 
@@ -91,13 +109,13 @@ const Brand = () => {
     event.preventDefault();
 
     const data = {
-      name: newBrandName,
-      description: newBrandDescription,
+      name: newGroupName,
+      category: categoryId, // Send selected category ID
     };
 
     try {
       const response = await axios.post(
-        "https://remonabackend.onrender.com/api/v1/brands",
+        "https://ctfhawksbackend.onrender.com/api/groups",
         data,
         {
           headers: {
@@ -107,19 +125,19 @@ const Brand = () => {
         }
       );
 
-      setBrands([...brands, response.data]);
+      setGroups([...groups, response.data]);
       setIsPostWindowVisible(false);
-      setNewBrandName("");
-      setNewBrandDescription("");
+      setNewGroupName("");
+      setCategoryId(""); // Reset the category selection
     } catch (error) {
-      console.error("Error adding brand:", error);
+      console.error("Error adding group:", error);
     }
   };
 
-  const handleDeleteBrand = async (brandId) => {
+  const handleDeleteGroup = async (groupId) => {
     try {
       await axios.delete(
-        `https://remonabackend.onrender.com/api/v1/brands/${brandId}`,
+        `https://ctfhawksbackend.onrender.com/api/groups/${groupId}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -127,16 +145,21 @@ const Brand = () => {
         }
       );
 
-      setBrands((prevBrands) =>
-        prevBrands.filter((brand) => brand._id !== brandId)
+      setGroups((prevGroups) =>
+        prevGroups.filter((group) => group._id !== groupId)
       );
     } catch (error) {
-      console.error("Error deleting brand:", error);
+      console.error("Error deleting group:", error);
     }
   };
 
   const handleLogout = () => {
     authStore.logout();
+  };
+
+  const getCategoryName = (categoryId) => {
+    const category = categories.find((cat) => cat._id === categoryId);
+    return category ? category.name : "Unknown Category";
   };
 
   return (
@@ -167,7 +190,7 @@ const Brand = () => {
                   className="bg-img"
                   style={{ backgroundImage: "url(img/1.jpeg)" }}
                 ></div>
-              <span>
+                <span>
                   <button className="logout-button" onClick={handleLogout}>
                     <span className="las la-power-off"></span>
                     Logout
@@ -180,7 +203,7 @@ const Brand = () => {
 
         <main>
           <div className="page-header">
-            <h1>Brands</h1>
+            <h1>Groups</h1>
           </div>
 
           <div className="page-content">
@@ -209,30 +232,29 @@ const Brand = () => {
                 <table width="100%">
                   <thead>
                     <tr>
-                      <th>ID</th>
                       <th>Name</th>
-                      <th>Description</th>
+                      <th>Category</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {brands.map((brand) => (
-                      <tr key={brand._id}>
-                        <td>{brand._id}</td>
-                        <td>{brand.name}</td>
-                        <td>{brand.description}</td>
+                    {groups.map((group) => (
+                      <tr key={group._id}>
+                        <td>{group.name}</td>
+                        <td>{getCategoryName(group.category)}</td>
+                        {/* Display category name */}
                         <td>
                           <div className="actions">
                             <span>
                               <FaRegEdit
                                 className="la-edit"
-                                onClick={() => handleUpdateClick(brand)}
+                                onClick={() => handleUpdateClick(group)}
                               />
                               {isUpdateWindowVisible &&
-                                selectedBrand?._id === brand._id && (
+                                selectedGroup?._id === group._id && (
                                   <div className="update-window">
                                     <form onSubmit={handleUpdateSubmit}>
-                                      <h2>Update Brand</h2>
+                                      <h2>Update Group</h2>
                                       <label>
                                         Name:
                                         <input
@@ -244,16 +266,25 @@ const Brand = () => {
                                         />
                                       </label>
                                       <label>
-                                        Description:
-                                        <input
-                                          type="text"
-                                          value={updatedDescription}
+                                        Category:
+                                        <select
+                                          value={categoryId}
                                           onChange={(e) =>
-                                            setUpdatedDescription(
-                                              e.target.value
-                                            )
+                                            setCategoryId(e.target.value)
                                           }
-                                        />
+                                        >
+                                          <option value="">
+                                            Select a category
+                                          </option>
+                                          {categories.map((category) => (
+                                            <option
+                                              key={category._id}
+                                              value={category._id}
+                                            >
+                                              {category.name}
+                                            </option>
+                                          ))}
+                                        </select>
                                       </label>
                                       <button
                                         className="update-button"
@@ -276,7 +307,7 @@ const Brand = () => {
                             <span>
                               <FaTrash
                                 className="la-delete"
-                                onClick={() => handleDeleteBrand(brand._id)}
+                                onClick={() => handleDeleteGroup(group._id)}
                               />
                             </span>
                           </div>
@@ -294,22 +325,28 @@ const Brand = () => {
       {isPostWindowVisible && (
         <div className="post-window">
           <form onSubmit={handlePostSubmit}>
-            <h2>Add New Brand</h2>
+            <h2>Add New Group</h2>
             <label>
               Name:
               <input
                 type="text"
-                value={newBrandName}
-                onChange={(e) => setNewBrandName(e.target.value)}
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
               />
             </label>
             <label>
-              Description:
-              <input
-                type="text"
-                value={newBrandDescription}
-                onChange={(e) => setNewBrandDescription(e.target.value)}
-              />
+              Category:
+              <select
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+              >
+                <option value="">Select a category</option>
+                {categories.map((category) => (
+                  <option key={category._id} value={category._id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
             </label>
             <button type="submit">Add</button>
             <button type="button" onClick={() => setIsPostWindowVisible(false)}>
@@ -322,4 +359,4 @@ const Brand = () => {
   );
 };
 
-export default Brand;
+export default GroupComponent;

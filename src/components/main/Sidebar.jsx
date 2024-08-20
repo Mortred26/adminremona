@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 
 function Sidebar() {
@@ -21,33 +20,27 @@ function Sidebar() {
         <div className="side-menu">
           <ul>
             <li>
-              <Link to="/">
-                <span className="las la-server"></span>
-                <small>Products</small>
+              <Link to="/category">
+                <span className="las la-stream"></span>
+                <small>Category</small>
+              </Link>
+            </li>
+            <li>
+              <Link to="/groups">
+                <span className="lab la-buffer"></span>
+                <small>Groups</small>
+              </Link>
+            </li>
+            <li>
+              <Link to="/tests">
+                <span className="las la-clipboard-list"></span>
+                <small>Tests</small>
               </Link>
             </li>
             <li>
               <Link to="/users">
                 <span className="las la-user-cog"></span>
                 <small>Users</small>
-              </Link>
-            </li>
-            <li>
-              <Link to="/brands">
-                <span className="lab la-buffer"></span>
-                <small>Brands</small>
-              </Link>
-            </li>
-            <li>
-              <Link to="/category">
-                <span className="las la-clipboard-list"></span>
-                <small>Categoryies</small>
-              </Link>
-            </li>
-            <li>
-              <Link to="/admin">
-                <span className="las la-user-shield"></span>
-                <small>admins</small>
               </Link>
             </li>
           </ul>

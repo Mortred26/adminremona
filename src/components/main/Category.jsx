@@ -12,16 +12,14 @@ const Category = () => {
   const [isPostWindowVisible, setIsPostWindowVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [updatedName, setUpdatedName] = useState("");
-  const [updatedImage, setUpdatedImage] = useState(null);
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [newCategoryImage, setNewCategoryImage] = useState(null);
   const accessToken = localStorage.getItem("accessToken");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          "https://remonabackend.onrender.com/api/v1/category",
+          "https://ctfhawksbackend.onrender.com/api/categories",
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,
@@ -40,7 +38,6 @@ const Category = () => {
   const handleUpdateClick = (category) => {
     setSelectedCategory(category);
     setUpdatedName(category.name);
-    setUpdatedImage(null);
     setIsUpdateWindowVisible(true);
     setIsPostWindowVisible(false);
   };
@@ -53,26 +50,20 @@ const Category = () => {
   const handleUpdateSubmit = async (event) => {
     event.preventDefault();
 
-    const formData = new FormData();
-    formData.append("name", updatedName);
-    if (updatedImage) {
-      formData.append("image", updatedImage);
-    }
-
     try {
       await axios.put(
-        `https://remonabackend.onrender.com/api/v1/category/${selectedCategory._id}`,
-        formData,
+        `https://ctfhawksbackend.onrender.com/api/categories/${selectedCategory._id}`,
+        { name: updatedName },
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "application/json",
           },
         }
       );
 
       const updatedCategories = await axios.get(
-        "https://remonabackend.onrender.com/api/v1/category",
+        "https://ctfhawksbackend.onrender.com/api/categories",
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -81,7 +72,6 @@ const Category = () => {
       );
 
       setCategories(updatedCategories.data);
-
       setIsUpdateWindowVisible(false);
     } catch (error) {
       console.error("Error updating category:", error);
@@ -91,18 +81,14 @@ const Category = () => {
   const handlePostSubmit = async (event) => {
     event.preventDefault();
 
-    const formData = new FormData();
-    formData.append("name", newCategoryName);
-    formData.append("image", newCategoryImage);
-
     try {
       const response = await axios.post(
-        "https://remonabackend.onrender.com/api/v1/category",
-        formData,
+        "https://ctfhawksbackend.onrender.com/api/categories",
+        { name: newCategoryName },
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "application/json",
           },
         }
       );
@@ -110,7 +96,6 @@ const Category = () => {
       setCategories([...categories, response.data]);
       setIsPostWindowVisible(false);
       setNewCategoryName("");
-      setNewCategoryImage(null);
     } catch (error) {
       console.error("Error adding category:", error);
     }
@@ -119,7 +104,7 @@ const Category = () => {
   const handleDeleteCategory = async (categoryId) => {
     try {
       await axios.delete(
-        `https://remonabackend.onrender.com/api/v1/category/${categoryId}`,
+        `https://ctfhawksbackend.onrender.com/api/categories/${categoryId}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -209,8 +194,6 @@ const Category = () => {
                 <table width="100%">
                   <thead>
                     <tr>
-                      <th>ID</th>
-                      <th>Image</th>
                       <th>Name</th>
                       <th>ISSUED DATE</th>
                       <th>ACTIONS</th>
@@ -219,20 +202,10 @@ const Category = () => {
                   <tbody>
                     {categories.map((category) => (
                       <tr key={category._id}>
-                        <td>{category._id}</td>
-                        <td>
-                          <div className="client">
-                            <div>
-                              <img
-                                src={`https://remonabackend.onrender.com/${category.image}`}
-                                className="client-img bg-img"
-                                alt={category.name}
-                              ></img>
-                            </div>
-                          </div>
-                        </td>
                         <td>{category.name}</td>
-                        <td>{category.update}</td>
+                        <td>
+                          {new Date(category.createdAt).toLocaleDateString()}
+                        </td>
                         <td>
                           <div className="actions">
                             <span>
@@ -255,15 +228,7 @@ const Category = () => {
                                           }
                                         />
                                       </label>
-                                      <label>
-                                        Image:
-                                        <input
-                                          type="file"
-                                          onChange={(e) =>
-                                            setUpdatedImage(e.target.files[0])
-                                          }
-                                        />
-                                      </label>
+
                                       <button
                                         className="update-button"
                                         type="submit"
@@ -312,13 +277,6 @@ const Category = () => {
                 type="text"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
-              />
-            </label>
-            <label>
-              Image:
-              <input
-                type="file"
-                onChange={(e) => setNewCategoryImage(e.target.files[0])}
               />
             </label>
             <button type="submit">Add</button>
